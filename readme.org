@@ -1,0 +1,345 @@
+#+title: helpers.sh
+#+author: Erwann Rogard
+
+#+name: doc-lead
+#+begin_src org
+  This Emacs Org file contains Unix shell helpers that have passed the test of time in my personal use.
+#+end_src
+
+* doc
+** license
+:PROPERTIES:
+:custom_id: doc-license
+:END:
+
+#+name: doc-license
+#+begin_src org
+  #===============================================================================
+  #  helpers.sh — Unix shell helpers
+  #  Copyright (C) 2024 — Erwann Rogard
+  #  Released under GPL 3.0
+  #  See https://www.gnu.org/licenses/gpl-3.0.en.html
+  #===============================================================================
+#+end_src
+
+#+name: foo
+#+begin_src org
+  foo
+  bar
+#+end_src
+
+#+header: :noweb-yes
+#+header: :results ouput
+#+begin_src elisp
+  (car (split-string (org-babel-ref-resolve "doc-license") "\n"))
+#+end_src
+
+#+RESULTS:
+: #===============================================================================
+
+** requirement
+:PROPERTIES:
+:custom_id: doc-req
+:END:
+
+*** machine
+:PROPERTIES:
+:custom_id: doc-req-machine
+:END:
+
+Installed:
+#+name: doc-install
+| unix shell |
+
+** workflow
+*** setup
+
+Customize these nodes:
+#+begin_src elisp
+  (org-match-sparse-tree customize="yes")
+#+end_src
+
+Undo:
+#+begin_src elisp
+  (org-show-all)
+#+end_src
+
+*** tangle
+
+Tangle the source blocks under heading [[id:tangle][tangle]].
+
+*** usage
+
+#+begin_src sh
+  source helpers.sh.sh
+#+end_src
+
+** reference
+
+Emacs-org:
+- [[https://orgmode.org/manual/Working-with-Source-Code.html][Working with source code]]
+
+* source
+** shebang
+:PROPERTIES:
+:custom_id: source-shebang
+:customize: yes
+:END:
+
+#+name: sh-shebang
+#+begin_src sh
+  #!/usr/bin/env bash
+#+end_src
+
+** this
+
+#+name: sh-this
+#+header: :noweb-ref sh-source
+#+begin_src sh
+erw_this="${BASH_SOURCE[0]}"
+#+end_src
+
+** help
+
+#+name: sh-help
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  function erw_help
+  {
+      local pattern="${c_erw_rule}"
+      local string=$(sed -n "/^${pattern}$/,/^${pattern}$/p" "$erw_this")
+      sed ":a; N; s/\(${pattern}\n\)\(${pattern}\)/\1/; ta; s/\n\{2,\}/\n/; P; D" <<< "${string}"
+  }
+#+end_src
+
+** hash
+:PROPERTIES:
+:custom_id: source-hash
+:customize: no
+:END:
+
+#+name: sh-hash
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_hash <trunc_digit> <string>
+  #===============================================================================
+  function erw_hash
+  {
+      local trunc_digit="$1"
+      [[ "$trunc_digit" =~ ^[[:digit:]]+$ ]]\
+          || { echo "error: ${trunc_digit} not a digit"; exit 1; }
+      local string="$2"
+      [[ -z "$string" ]]\
+          && { echo "error: empty string"; exit 1; } 
+      echo "$string" |  md5sum | cut -d '-' -f1 | cut -c 1-"$trunc_digit"
+  }
+#+end_src
+
+** eml
+:PROPERTIES:
+:custom_id: source-eml
+:END:
+
+*** regex
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  declare -A c_erw_dns_regex_kv
+  c_erw_dns_regex_kv['local']='[[:alnum:]_.%+-]+'
+  c_erw_dns_regex_kv['at']='@'
+  c_erw_dns_regex_kv['sld']='[[:alnum:].-]+'
+  c_erw_dns_regex_kv['tld']='\.[[:alpha:]]{2,}'
+  declare -a c_erw_eml_regex_ar=('local' 'at' 'sld' 'tld')
+  #  declare -r c_erw_eml_regex
+  c_erw_eml_regex=$(for key in "${c_erw_eml_regex_ar[@]}";
+                    do printf '%s' "${c_erw_dns_regex_kv[$key]}"; 
+                    done)
+#+end_src
+
+*** predicate
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+#+end_src
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_eml_address_p <string>
+  #===============================================================================
+  function erw_eml_address_p
+    {
+        local address="$1"
+        local regex="^${c_erw_eml_regex}$" 
+        [[ $address =~ $regex ]] 
+    }
+#+end_src
+
+#+header: :noweb-ref sh-example
+#+begin_src sh
+  erw_eml_address_p "john@domain.ext" || echo "error"
+  erw_eml_address_p "john[At]domain.ext" && echo "error"
+#+end_src
+
+** fields
+:PROPERTIES:
+:custom_id: source-fields
+:END:
+
+*** count
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+#===============================================================================
+# erw_fields_count <sep> <file>
+#===============================================================================
+  function  erw_fields_count
+  {
+      local sep="$1"
+      local file="$2"
+      awk -F"$sep" '{print NF}' "$file"
+  }
+#+end_src
+
+** path
+:PROPERTIES:
+:custom_id: source-path
+:END:
+
+*** join
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_path_join <parent> <child>
+  #===============================================================================
+  function erw_path_join
+    {
+        local parent="${1%/}"
+        local child="$2"
+        local format="error: %s is empty"
+        [[ -z "$parent" ]] || { printf "$format" "$parent" ; exit 1; }
+        [[ -z "$child" ]] || { printf "$format" "$child" ; exit 1; }
+        echo "$parent/$child"
+    }
+#+end_src
+
+*** ext
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_path_ext <prefix> <ext>
+  #===============================================================================
+  function erw_path_ext
+  {
+      local prefix="$1"
+      local ext="$2"
+      echo "${prefix}.${ext}"
+  }
+#+end_src
+
+** bool
+:PROPERTIES:
+:custom_id: source-bool
+:END:
+
+*** false
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_false
+  #===============================================================================
+  function erw_false
+  {
+     false; echo "$?"
+  }
+#+end_src
+
+*** true
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_true
+  #===============================================================================
+  function erw_true
+  {
+     true; echo "$?"
+  }
+#+end_src
+
+** status
+*** false
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_false_p
+  #===============================================================================
+  function erw_false_p
+  {
+     (( $? == $(erw_false) ))
+  }
+#+end_src
+
+*** true
+:PROPERTIES:
+:customize: no
+:END:
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_true_p
+  #===============================================================================
+  function erw_true_p
+  {
+     (( $? == $(erw_true) ))
+  }
+#+end_src
+
+* tangle
+:PROPERTIES:
+:custom_id: tangle
+:header-args: :tangle ./source/helpers.sh
+:END:
+
+#+header: :noweb yes
+#+begin_src sh
+  <<sh-shebang>>
+  <<doc-license()>>
+#+end_src
+
+#+header: :noweb yes
+#+header: :var c_erw_rule=(car (split-string (org-babel-ref-resolve "doc-license") "\n"))
+#+begin_src sh
+  <<sh-preamble>>
+  <<sh-source>>
+#+end_src
