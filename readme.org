@@ -96,7 +96,7 @@ Emacs-org:
 #+name: sh-this
 #+header: :noweb-ref sh-source
 #+begin_src sh
-erw_this="${BASH_SOURCE[0]}"
+  erw_this="${BASH_SOURCE[0]}"
 #+end_src
 
 ** help
@@ -167,19 +167,15 @@ erw_this="${BASH_SOURCE[0]}"
 
 #+header: :noweb-ref sh-source
 #+begin_src sh
-#+end_src
-
-#+header: :noweb-ref sh-source
-#+begin_src sh
   #===============================================================================
   # erw_eml_address_p <string>
   #===============================================================================
   function erw_eml_address_p
-    {
-        local address="$1"
-        local regex="^${c_erw_eml_regex}$" 
-        [[ $address =~ $regex ]] 
-    }
+  {
+      local address="$1"
+      local regex="^${c_erw_eml_regex}$" 
+      [[ $address =~ $regex ]] 
+  }
 #+end_src
 
 #+header: :noweb-ref sh-example
@@ -200,9 +196,9 @@ erw_this="${BASH_SOURCE[0]}"
 
 #+header: :noweb-ref sh-source
 #+begin_src sh
-#===============================================================================
-# erw_fields_count <sep> <file>
-#===============================================================================
+  #===============================================================================
+  # erw_fields_count <sep> <file>
+  #===============================================================================
   function  erw_fields_count
   {
       local sep="$1"
@@ -227,14 +223,14 @@ erw_this="${BASH_SOURCE[0]}"
   # erw_path_join <parent> <child>
   #===============================================================================
   function erw_path_join
-    {
-        local parent="${1%/}"
-        local child="$2"
-        local format="error: %s is empty"
-        [[ -z "$parent" ]] || { printf "$format" "$parent" ; exit 1; }
-        [[ -z "$child" ]] || { printf "$format" "$child" ; exit 1; }
-        echo "$parent/$child"
-    }
+  {
+      local parent="${1%/}"
+      local child="$2"
+      local format="error: %s is empty"
+      [[ -z "$parent" ]] || { printf "$format" "$parent" ; exit 1; }
+      [[ -z "$child" ]] || { printf "$format" "$child" ; exit 1; }
+      echo "$parent/$child"
+  }
 #+end_src
 
 *** ext
@@ -272,7 +268,7 @@ erw_this="${BASH_SOURCE[0]}"
   #===============================================================================
   function erw_false
   {
-     false; echo "$?"
+      false; echo "$?"
   }
 #+end_src
 
@@ -288,7 +284,7 @@ erw_this="${BASH_SOURCE[0]}"
   #===============================================================================
   function erw_true
   {
-     true; echo "$?"
+      true; echo "$?"
   }
 #+end_src
 
@@ -305,7 +301,7 @@ erw_this="${BASH_SOURCE[0]}"
   #===============================================================================
   function erw_false_p
   {
-     (( $? == $(erw_false) ))
+      (( $? == $(erw_false) ))
   }
 #+end_src
 
@@ -321,7 +317,7 @@ erw_this="${BASH_SOURCE[0]}"
   #===============================================================================
   function erw_true_p
   {
-     (( $? == $(erw_true) ))
+      (( $? == $(erw_true) ))
   }
 #+end_src
 
