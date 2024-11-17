@@ -22,12 +22,17 @@ function erw_hash
 {
     local trunc_digit="$1"
     [[ "$trunc_digit" =~ ^[[:digit:]]+$ ]]\
-        || { echo "error: ${trunc_digit} not a digit"; exit 1; }
+        || { echo "error: ${trunc_digit} not a digit"; return 1; }
     local string="$2"
     [[ -z "$string" ]]\
-        && { echo "error: empty string"; exit 1; } 
+        && { echo "error: empty string"; return 1; } 
     echo "$string" |  md5sum | cut -d '-' -f1 | cut -c 1-"$trunc_digit"
 }
+#===============================================================================
+# c_erw_dns_regex_kv
+# c_erw_eml_regex_ar
+# c_erw_eml_regex
+#===============================================================================
 declare -A c_erw_dns_regex_kv
 c_erw_dns_regex_kv['local']='[[:alnum:]_.%+-]+'
 c_erw_dns_regex_kv['at']='@'
@@ -64,8 +69,8 @@ function erw_path_join
     local parent="${1%/}"
     local child="$2"
     local format="error: %s is empty"
-    [[ -z "$parent" ]] || { printf "$format" "$parent" ; exit 1; }
-    [[ -z "$child" ]] || { printf "$format" "$child" ; exit 1; }
+    [[ -z "$parent" ]] || { printf "$format" "$parent" ; return 1; }
+    [[ -z "$child" ]] || { printf "$format" "$child" ; return 1; }
     echo "$parent/$child"
 }
 #===============================================================================
