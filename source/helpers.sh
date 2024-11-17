@@ -13,7 +13,6 @@ function erw_help
 {
     local pattern="${c_erw_rule}"
     local string=$(sed -n "/^${pattern}$/,/^${pattern}$/p" "$erw_this")
-    # sed ":a; N; s/^${pattern}\n${pattern}$/${pattern}/; ta" <<< "${string}"
     sed ":a; N; s/\(${pattern}\n\)\(${pattern}\)/\1/; ta; s/\n\{2,\}/\n/; P; D" <<< "${string}"
 }
 #===============================================================================
@@ -39,37 +38,36 @@ declare -a c_erw_eml_regex_ar=('local' 'at' 'sld' 'tld')
 c_erw_eml_regex=$(for key in "${c_erw_eml_regex_ar[@]}";
                   do printf '%s' "${c_erw_dns_regex_kv[$key]}"; 
                   done)
-
 #===============================================================================
 # erw_eml_address_p <string>
 #===============================================================================
 function erw_eml_address_p
-  {
-      local address="$1"
-      local regex="^${c_erw_eml_regex}$" 
-      [[ $address =~ $regex ]] 
-  }
+{
+    local address="$1"
+    local regex="^${c_erw_eml_regex}$" 
+    [[ $address =~ $regex ]] 
+}
 #===============================================================================
 # erw_fields_count <sep> <file>
 #===============================================================================
-  function  erw_fields_count
-  {
-      local sep="$1"
-      local file="$2"
-      awk -F"$sep" '{print NF}' "$file"
-  }
+function  erw_fields_count
+{
+    local sep="$1"
+    local file="$2"
+    awk -F"$sep" '{print NF}' "$file"
+}
 #===============================================================================
 # erw_path_join <parent> <child>
 #===============================================================================
 function erw_path_join
-  {
-      local parent="${1%/}"
-      local child="$2"
-      local format="error: %s is empty"
-      [[ -z "$parent" ]] || { printf "$format" "$parent" ; exit 1; }
-      [[ -z "$child" ]] || { printf "$format" "$child" ; exit 1; }
-      echo "$parent/$child"
-  }
+{
+    local parent="${1%/}"
+    local child="$2"
+    local format="error: %s is empty"
+    [[ -z "$parent" ]] || { printf "$format" "$parent" ; exit 1; }
+    [[ -z "$child" ]] || { printf "$format" "$child" ; exit 1; }
+    echo "$parent/$child"
+}
 #===============================================================================
 # erw_path_ext <prefix> <ext>
 #===============================================================================
@@ -84,26 +82,26 @@ function erw_path_ext
 #===============================================================================
 function erw_false
 {
-   false; echo "$?"
+    false; echo "$?"
 }
 #===============================================================================
 # erw_true
 #===============================================================================
 function erw_true
 {
-   true; echo "$?"
+    true; echo "$?"
 }
 #===============================================================================
 # erw_false_p
 #===============================================================================
 function erw_false_p
 {
-   (( $? == $(erw_false) ))
+    (( $? == $(erw_false) ))
 }
 #===============================================================================
 # erw_true_p
 #===============================================================================
 function erw_true_p
 {
-   (( $? == $(erw_true) ))
+    (( $? == $(erw_true) ))
 }
