@@ -56,7 +56,7 @@ Installed:
 
 Customize these nodes:
 #+begin_src elisp
-  (org-match-sparse-tree customize="yes")
+  (org-match-sparse-tree "customize=\"yes\"")
 #+end_src
 
 Undo:
