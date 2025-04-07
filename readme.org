@@ -226,45 +226,16 @@ Emacs-org:
 #+RESULTS:
 : error: john[At]domain.ext
 
-*** status
-**** false
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_false_p
-  #===============================================================================
-  function erw_false_p
-  {
-      (( $? == $(erw_false) ))
-  }
-#+end_src
-
-#+RESULTS:
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-example
-#+begin_src sh
-false; erw_false_p && echo "unexpected true" || echo "expected false"
-#+end_src
-
-#+RESULTS:
-| sh:      | erw_false: | command | not | found |        |        |         |          |        |       |    |     |    |
-| sh:      | ((:        |       1 | ==  | :     | syntax | error: | operand | expected | (error | token | is | "== | ") |
-| expected | false      |         |     |       |        |        |         |          |        |       |    |     |    |
-
-
-**** true
+*** exit_ok
 
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
-  # erw_true_p
+  # erw_exit_ok_p
   #===============================================================================
-  function erw_true_p
+  function erw_exit_ok_p
   {
-      (( $? == $(erw_true) ))
+      (( $? == 0 ))
   }
 #+end_src
 
@@ -308,34 +279,6 @@ false; erw_false_p && echo "unexpected true" || echo "expected false"
 :PROPERTIES:
 :custom_id: source-bool
 :END:
-*** status
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_false
-  #===============================================================================
-  function erw_false
-  {
-      false; echo "$?"
-  }
-#+end_src
-
-#+RESULTS:
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_true
-  #===============================================================================
-  function erw_true
-  {
-      true; echo "$?"
-  }
-#+end_src
-
 *** path
 **** join
 
@@ -474,10 +417,10 @@ false; erw_false_p && echo "unexpected true" || echo "expected false"
 
       keys=$(echo "$json_string" | jq -r 'keys[]')
       array=("action" "source" "target")
-      status=true
+      status=$(erw_true)
       for key in "${array[@]}"; do
           if ! grep -qx "$key" <<< "$keys"; then
-              status=false
+              status=$(erw_false)
               break
           fi
       done
@@ -491,8 +434,19 @@ false; erw_false_p && echo "unexpected true" || echo "expected false"
       regex='url|file|string'
       echo "DEBUG"
       #eval $(
-      echo $keys
-      echo $(printf "${script_ii}" "${regex}")
+      echo "${keys[@]}"
+
+      status=$(erw_false)
+      for key in "${keys[@]}"; do
+  	if [[ "${key}" =~ $regex ]]; then
+  	    status=$(erw_true)
+  	    break
+  	fi
+      done
+
+      
+      
+      # echo $(printf "${script_ii}" "${regex}")
       #    )
       #echo "${keys}" | grep -E "${regex}"
       
@@ -579,7 +533,6 @@ false; erw_false_p && echo "unexpected true" || echo "expected false"
 DEBUG
 description url
 key=$(echo ${keys} | grep -E 'url|file|string');
-
 
 *** ext
 
