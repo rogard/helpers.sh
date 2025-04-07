@@ -314,11 +314,11 @@ false; erw_false_p && echo "unexpected true" || echo "expected false"
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
-  # erw_false_p
+  # erw_false
   #===============================================================================
-  function erw_false_p
+  function erw_false
   {
-      (( $? == $(erw_false) ))
+      false; echo "$?"
   }
 #+end_src
 
@@ -328,11 +328,11 @@ false; erw_false_p && echo "unexpected true" || echo "expected false"
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
-  # erw_true_p
+  # erw_true
   #===============================================================================
-  function erw_true_p
+  function erw_true
   {
-      (( $? == $(erw_false) ))
+      true; echo "$?"
   }
 #+end_src
 
@@ -449,97 +449,96 @@ false; erw_false_p && echo "unexpected true" || echo "expected false"
 
 #+header: :session sh-eval
 #+begin_src sh
-    #===============================================================================
-    # erw_redirect <json_object>
-    #===============================================================================
-    function erw_redirect {
-        local array \
-              instruct \
-              json_object \
-              keys \
-              match \
-              regex \
-              script_i \
-              script_ii \
-              script_iii \
-              source \
-              status \
-              target \
-              top_key \
-              values
-        
-        json_object=$(echo "${1}")
-        source=$(mktemp)
-        trap 'rm -f "$source"' EXIT
+  #===============================================================================
+  # erw_redirect <json_object>
+  #===============================================================================
+  function erw_redirect {
+      local array \
+            instruct \
+            json_object \
+            keys \
+            match \
+            regex \
+            script_i \
+            script_ii \
+            script_iii \
+            source \
+            status \
+            target \
+            top_key \
+            values
+      
+      json_object=$(echo "${1}")
+      source=$(mktemp)
+      trap 'rm -f "$source"' EXIT
 
-        keys=$(echo "$json_string" | jq -r 'keys[]')
-        array=("action" "source" "target")
-        status=true
-        for key in "${array[@]}"; do
-            if ! grep -qx "$key" <<< "$keys"; then
-                status=false
-                break
-            fi
-        done
+      keys=$(echo "$json_string" | jq -r 'keys[]')
+      array=("action" "source" "target")
+      status=true
+      for key in "${array[@]}"; do
+          if ! grep -qx "$key" <<< "$keys"; then
+              status=false
+              break
+          fi
+      done
+      
+      script_i="instruct=\$(echo \${json_object} | jq '.%s'); "
+      script_i+="keys=( \$(echo \${instruct} | jq -r 'keys | .[]') ); "
+      script_ii="key=\$(echo \${keys} | grep -E '%s'); "
+      # script_iii="value=\$(echo \${instruct} | jq -r '.$key')"
 
-
-        script_i="instruct=\$(echo \${json_object} | jq '.%s'); "
-        script_i+="keys=( \$(echo \${instruct} | jq -r 'keys | .[]') ); "
-        script_ii="key=\$(echo \${keys} | grep -E '%s'); "
-        # script_iii="value=\$(echo \${instruct} | jq -r '.$key')"
-
-        eval $(printf "${script_i}" 'source')
-        regex='url|file|string'
-        echo "DEBUG"
-        #eval $(
-        echo $keys
-        echo $(printf "${script_ii}" "${regex}")
-        #    )
-        #echo "${keys}" | grep -E "${regex}"
-        
-        #      
-        #      eval $(printf "$script" 'source')
-        #      case "$keys" in
-        #        	"url")
-        #  	    curl "${values}" -o "$source"
-        #        	    ;;
-        #        	"file")
-        #        	    "${values}" > "$source"
-        #        	    ;;
-        #        	"string")
-        #        	    echo "${values}" > "$source"
-        #        	    ;;
-        #        	,*)
-        #        	    echo "Unknown source ${keys}"
-        #        	    return 1
-        #        	    ;;
-        #      esac
-        #
-        #      eval $(printf "$script" 'target')
-        #      case "$keys" in
-        #    	"file") 
-        #    	    target="${values}"
-        #    	    ;;
-        #    	,*)
-        #    	    echo "Unknown target ${keys}"
-        #    	    return 1
-        #    	    ;;
-        #      esac  		    
-        #
-        #      eval $(printf "$script" 'action')
-        #      case "$keys" in
-        #    	"append") 
-        #    	    "${source}" >> "${target}"
-        #    	    ;;
-        #    	"append") 
-        #    	    "${source}" >> "${target}"
-        #    	    ;;
-        #    	,*)
-        #    	    echo "Unknown target ${keys}"
-        #    	    return 1
-        #    	    ;;
-        #      esac
-    }
+      eval $(printf "${script_i}" 'source')
+      regex='url|file|string'
+      echo "DEBUG"
+      #eval $(
+      echo $keys
+      echo $(printf "${script_ii}" "${regex}")
+      #    )
+      #echo "${keys}" | grep -E "${regex}"
+      
+      #      
+      #      eval $(printf "$script" 'source')
+      #      case "$keys" in
+      #        	"url")
+      #  	    curl "${values}" -o "$source"
+      #        	    ;;
+      #        	"file")
+      #        	    "${values}" > "$source"
+      #        	    ;;
+      #        	"string")
+      #        	    echo "${values}" > "$source"
+      #        	    ;;
+      #        	,*)
+      #        	    echo "Unknown source ${keys}"
+      #        	    return 1
+      #        	    ;;
+      #      esac
+      #
+      #      eval $(printf "$script" 'target')
+      #      case "$keys" in
+      #    	"file") 
+      #    	    target="${values}"
+      #    	    ;;
+      #    	,*)
+      #    	    echo "Unknown target ${keys}"
+      #    	    return 1
+      #    	    ;;
+      #      esac  		    
+      #
+      #      eval $(printf "$script" 'action')
+      #      case "$keys" in
+      #    	"append") 
+      #    	    "${source}" >> "${target}"
+      #    	    ;;
+      #    	"append") 
+      #    	    "${source}" >> "${target}"
+      #    	    ;;
+      #    	,*)
+      #    	    echo "Unknown target ${keys}"
+      #    	    return 1
+      #    	    ;;
+      #      esac
+  }
 #+end_src
 
 #+RESULTS:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #===============================================================================
 #  helpers.sh — Unix shell helpers
-#  Copyright (C) 2024 — Erwann Rogard
+#  Copyright (C) 2024-2025 — Erwann Rogard
 #  Released under GPL 3.0
 #  See https://www.gnu.org/licenses/gpl-3.0.en.html
 #===============================================================================
@@ -73,18 +73,18 @@ function erw_fields_count
     awk -F"$sep" '{print NF}' "$file"
 }
 #===============================================================================
-# erw_false_p
+# erw_false
 #===============================================================================
-function erw_false_p
+function erw_false
 {
-    (( $? == $(erw_false) ))
+    false; echo "$?"
 }
 #===============================================================================
-# erw_true_p
+# erw_true
 #===============================================================================
-function erw_true_p
+function erw_true
 {
-    (( $? == $(erw_false) ))
+    true; echo "$?"
 }
 #===============================================================================
 # erw_path_join <parent> <child>
