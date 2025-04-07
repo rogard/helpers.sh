@@ -415,41 +415,45 @@ Emacs-org:
       source=$(mktemp)
       trap 'rm -f "$source"' EXIT
 
-      keys=$(echo "$json_string" | jq -r 'keys[]')
+      keys=( $(echo "${json_object}" | jq -r 'keys[]') )
       array=("action" "source" "target")
-      status=$(erw_true)
-      for key in "${array[@]}"; do
-          if ! grep -qx "$key" <<< "$keys"; then
-              status=$(erw_false)
-              break
-          fi
-      done
-      
-      script_i="instruct=\$(echo \${json_object} | jq '.%s'); "
-      script_i+="keys=( \$(echo \${instruct} | jq -r 'keys | .[]') ); "
-      script_ii="key=\$(echo \${keys} | grep -E '%s'); "
-      # script_iii="value=\$(echo \${instruct} | jq -r '.$key')"
+      array=($(
+  	       grep -Fvx -f <(printf '%s\n' "${keys[@]}")\
+  		    <(printf '%s\n' "${array[@]}")
+  	   ))
+      (( ${#array[@]} == 0 ))\
+        	|| {
+    	printf 'missing keys: ';
+    	printf '%s\n' "${array[@]}";
+    	return 1;
+      }
 
-      eval $(printf "${script_i}" 'source')
-      regex='url|file|string'
-      echo "DEBUG"
-      #eval $(
-      echo "${keys[@]}"
 
-      status=$(erw_false)
-      for key in "${keys[@]}"; do
-  	if [[ "${key}" =~ $regex ]]; then
-  	    status=$(erw_true)
-  	    break
-  	fi
-      done
+      #      script_i="instruct=\$(echo \${json_object} | jq '.%s'); "
+      #      script_i+="keys=( \$(echo \${instruct} | jq -r 'keys | .[]') ); "
+      #      script_ii="key=\$(echo \${keys} | grep -E '%s'); "
+      #      # script_iii="value=\$(echo \${instruct} | jq -r '.$key')"
+      #
+      #      eval $(printf "${script_i}" 'source')
+      #      regex='url|file|string'
+      #      echo "DEBUG"
+      #      #eval $(
+      #      echo "${keys[@]}"
+      #
+      #      status='false'
+      #      for key in "${keys[@]}"; do
+      #    	if [[ "${key}" =~ $regex ]]; then
+      #    	    status='true'
+      #    	    break
+      #    	fi
+      #      done
+      #      [[ status=='true' ]] \
+  	#  	  || echo "error: no match for $regex in ${keys[@]}"
 
-      
-      
       # echo $(printf "${script_ii}" "${regex}")
       #    )
       #echo "${keys}" | grep -E "${regex}"
-      
+
       #      
       #      eval $(printf "$script" 'source')
       #      case "$keys" in
@@ -530,9 +534,7 @@ Emacs-org:
 #+end_src
 
 #+RESULTS:
-DEBUG
-description url
-key=$(echo ${keys} | grep -E 'url|file|string');
+missing keys: acxion
 
 *** ext
 
