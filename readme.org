@@ -16,7 +16,7 @@
 #+begin_src org
   #===============================================================================
   #  helpers.sh — Unix shell helpers
-  #  Copyright (C) 2024 — Erwann Rogard
+  #  Copyright (C) 2024-2025 — Erwann Rogard
   #  Released under GPL 3.0
   #  See https://www.gnu.org/licenses/gpl-3.0.en.html
   #===============================================================================
@@ -56,7 +56,7 @@ Tangle the source blocks under heading [[id:tangle][tangle]].
 *** usage
 
 #+begin_src sh
-  source helpers.sh.sh
+  source helpers.sh
 #+end_src
 
 ** reference
@@ -89,201 +89,147 @@ Emacs-org:
 #+name: sh-help
 #+header: :noweb-ref sh-source
 #+begin_src sh
-  function erw_help
-  {
-      local pattern="${c_erw_rule}"
-      local string=$(sed -n "/^${pattern}$/,/^${pattern}$/p" "$erw_this")
-      sed ":a; N; s/\(${pattern}\n\)\(${pattern}\)/\1/; ta; s/\n\{2,\}/\n/; P; D" <<< "${string}"
-  }
+    function erw_help
+    (
+        pattern="${c_erw_rule}"
+        string=$(sed -n "/^${pattern}$/,/^${pattern}$/p" "$erw_this")
+        sed ":a; N; s/\(${pattern}\n\)\(${pattern}\)/\1/; ta; s/\n\{2,\}/\n/; P; D" <<< "${string}"
+    )
 #+end_src
 
-** hash
-:PROPERTIES:
-:custom_id: source-hash
-:customize: no
-:END:
-
-#+name: sh-hash
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_hash <trunc_digit> <string>
-  #===============================================================================
-  function erw_hash
-  {
-      local trunc_digit="$1"
-      [[ "$trunc_digit" =~ ^[[:digit:]]+$ ]]\
-          || { echo "error: ${trunc_digit} not a digit"; return 1; }
-      local string="$2"
-      [[ -z "$string" ]]\
-          && { echo "error: empty string"; return 1; } 
-      echo "$string" |  md5sum | cut -d '-' -f1 | cut -c 1-"$trunc_digit"
-  }
-#+end_src
-
-** eml
+** regex
 :PROPERTIES:
 :custom_id: source-eml
 :END:
 
-*** regex
-:PROPERTIES:
-:customize: no
-:END:
+*** eml
 
+#+header: :session sh-eval
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
-  # c_erw_dns_regex_kv
   # c_erw_eml_regex_ar
   # c_erw_eml_regex
   #===============================================================================
-  declare -A c_erw_dns_regex_kv
-  c_erw_dns_regex_kv['local']='[[:alnum:]_.%+-]+'
-  c_erw_dns_regex_kv['at']='@'
-  c_erw_dns_regex_kv['sld']='[[:alnum:].-]+'
-  c_erw_dns_regex_kv['tld']='\.[[:alpha:]]{2,}'
-  declare -a c_erw_eml_regex_ar=('local' 'at' 'sld' 'tld')
-  #  declare -r c_erw_eml_regex
-  c_erw_eml_regex=$(for key in "${c_erw_eml_regex_ar[@]}";
-                    do printf '%s' "${c_erw_dns_regex_kv[$key]}"; 
-                    done)
+  c_erw_dns_regex_ar=(
+      # local             at  sld              tld
+      '[[:alnum:]_.%+-]+' '@' '[[:alnum:].-]+' '\.[[:alpha:]]{2,}'
+  )
+  c_erw_eml_regex=$(printf '%s' "${c_erw_dns_regex_ar[@]}")
 #+end_src
 
-*** predicate
-:PROPERTIES:
-:customize: no
-:END:
+#+RESULTS:
 
+*** path
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # c_erw_path_regex
+  # Though not using them, FYI:
+  # https://stackoverflow.com/a/10047501
+  # https://stackoverflow.com/a/42036026
+  #===============================================================================
+  c_erw_path_regex='^[^[:cntrl:]]+$'
+#+end_src
+
+#+RESULTS:
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+begin_src sh
+  test_cases_ar=(
+      "~/user/docs"
+      "/tmp/somefile"
+      "/path/to/dir/with_subdir"
+      "/valid_path_with+characters"
+      "/invalid/path/"$'\x01'
+      "/another//double/slash"
+      "valid/path/without/slash/at/start"
+      "/home/user/"$'\0'"path"
+  )
+
+  for test_case in "${test_cases_ar[@]}"; do
+      if [[ ! "${test_case}" =~ $c_erw_path_regex ]]; then
+          echo "Invalid path: ${test_case}"
+      fi
+  done
+#+end_src
+
+#+RESULTS:
+: Invalid path: /invalid/path/
+
+** predicate
+*** path
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_path_p <string>
+  #===============================================================================
+  function erw_path_p
+  {
+      local string
+      string="${1}"
+      [[ "$string" =~ ^${c_erw_path_regex}$ ]]
+  }
+#+end_src
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+begin_src sh
+  test_cases_ar=(
+      "~/user/docs"
+      "/tmp//somefile"
+      "/path/to/dir/with_subdir"
+      "/valid_path_with+characters"
+      "/invalid/path/\x01"
+      "/another//double/slash"
+  )
+
+  for test_case in "${test_cases_ar[@]}"; do
+      erw_path_p "${test_case}" \
+  	|| { echo "Invalid path: ${test_case}"; }
+  done
+#+end_src
+
+#+RESULTS:
+
+*** eml
+
+#+header: :session sh-eval
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
   # erw_eml_address_p <string>
   #===============================================================================
   function erw_eml_address_p
-  {
-      local address="$1"
-      local regex="^${c_erw_eml_regex}$" 
-      [[ $address =~ $regex ]] 
-  }
+  (
+      string="${1}"
+      [[ "${string}" =~ ^${c_erw_eml_regex}$ ]] 
+  )
 #+end_src
 
+#+RESULTS:
+
+#+header: :session sh-eval
 #+header: :noweb-ref sh-example
 #+begin_src sh
-  erw_eml_address_p "john@domain.ext" || echo "error"
-  erw_eml_address_p "john[At]domain.ext" && echo "error"
+  test_cases_ar=('john@domain.ext' 'john[At]domain.ext')
+  for eml in "${test_cases_ar[@]}"; do
+      erw_eml_address_p "$eml" || echo "error: $eml"
+  done
 #+end_src
 
-** fields
-:PROPERTIES:
-:custom_id: source-fields
-:END:
+#+RESULTS:
+: error: john[At]domain.ext
 
-*** count
-:PROPERTIES:
-:customize: no
-:END:
+*** status
+**** false
 
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_fields_count <sep> <file>
-  #===============================================================================
-  function  erw_fields_count
-  {
-      local sep="$1"
-      local file="$2"
-      awk -F"$sep" '{print NF}' "$file"
-  }
-#+end_src
-
-** path
-:PROPERTIES:
-:custom_id: source-path
-:END:
-
-*** join
-:PROPERTIES:
-:customize: no
-:END:
-
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_path_join <parent> <child>
-  #===============================================================================
-  function erw_path_join
-  {
-      local parent="${1%/}"
-      local child="$2"
-      local format="error: %s is empty"
-      [[ -z "$parent" ]] || { printf "$format" "$parent" ; return 1; }
-      [[ -z "$child" ]] || { printf "$format" "$child" ; return 1; }
-      echo "$parent/$child"
-  }
-#+end_src
-
-*** ext
-:PROPERTIES:
-:customize: no
-:END:
-
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_path_ext <prefix> <ext>
-  #===============================================================================
-  function erw_path_ext
-  {
-      local prefix="$1"
-      local ext="$2"
-      echo "${prefix}.${ext}"
-  }
-#+end_src
-
-** bool
-:PROPERTIES:
-:custom_id: source-bool
-:END:
-
-*** false
-:PROPERTIES:
-:customize: no
-:END:
-
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_false
-  #===============================================================================
-  function erw_false
-  {
-      false; echo "$?"
-  }
-#+end_src
-
-*** true
-:PROPERTIES:
-:customize: no
-:END:
-
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_true
-  #===============================================================================
-  function erw_true
-  {
-      true; echo "$?"
-  }
-#+end_src
-
-** status
-*** false
-:PROPERTIES:
-:customize: no
-:END:
-
+#+header: :session sh-eval
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
@@ -295,10 +241,21 @@ Emacs-org:
   }
 #+end_src
 
-*** true
-:PROPERTIES:
-:customize: no
-:END:
+#+RESULTS:
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+begin_src sh
+false; erw_false_p && echo "unexpected true" || echo "expected false"
+#+end_src
+
+#+RESULTS:
+| sh:      | erw_false: | command | not | found |        |        |         |          |        |       |    |     |    |
+| sh:      | ((:        |       1 | ==  | :     | syntax | error: | operand | expected | (error | token | is | "== | ") |
+| expected | false      |         |     |       |        |        |         |          |        |       |    |     |    |
+
+
+**** true
 
 #+header: :noweb-ref sh-source
 #+begin_src sh
@@ -308,6 +265,336 @@ Emacs-org:
   function erw_true_p
   {
       (( $? == $(erw_true) ))
+  }
+#+end_src
+
+** text
+*** fields_count
+
+#+header: :noweb-ref sh-source
+#+header: :session sh-eval
+#+begin_src sh
+  #===============================================================================
+  # erw_fields_count <sep> <file>
+  #===============================================================================
+  function erw_fields_count
+  {
+      local sep file
+      sep="$1"
+      file="$2"
+      awk -F"$sep" '{print NF}' "$file"
+  }
+#+end_src
+
+#+header: :noweb-ref sh-example
+#+header: :session sh-eval
+#+begin_src sh
+  temp_file=$(mktemp)
+  trap 'rm -f "$temp_file"' EXIT
+  cat <<EOF > "$temp_file"
+  apple,banana,orange
+  dog,cat,mouse
+  car,bike,bus,truck
+  EOF
+  erw_fields_count "," "$temp_file"
+#+end_src
+
+#+RESULTS:
+| 3 |
+| 3 |
+| 4 |
+
+** string
+:PROPERTIES:
+:custom_id: source-bool
+:END:
+*** status
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_false_p
+  #===============================================================================
+  function erw_false_p
+  {
+      (( $? == $(erw_false) ))
+  }
+#+end_src
+
+#+RESULTS:
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_true_p
+  #===============================================================================
+  function erw_true_p
+  {
+      (( $? == $(erw_false) ))
+  }
+#+end_src
+
+*** path
+**** join
+
+#+header: :noweb-ref sh-source
+#+header: :session sh-eval
+#+begin_src sh
+  #===============================================================================
+  # erw_path_join <parent> <child>
+  #===============================================================================
+  function erw_path_join
+  {
+      local parent child result
+      parent="${1%/}"
+      child="${2#/}"
+      result="${parent}/${child}"
+      erw_path_p "${result}" \
+  	|| {
+  	format='error: %s does not match %s';
+  	printf "$format" "$result" "";
+  	return 1;
+      }
+      echo "${result}"
+  }
+#+end_src
+
+#+RESULTS:
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+begin_src sh
+  test_cases_ar=(
+      "/home	user/docs"
+      "/home/	user/docs"
+      "~/	/user/docs"
+  )
+
+  for test_case in "${test_cases_ar[@]}"; do
+      parent=$(echo "$test_case" | awk -F$'\t' '{print $1}')
+      child=$(echo "$test_case" | awk -F$'\t' '{print $2}')
+      erw_path_join "${parent}" "${child}"\
+  	|| echo "error: invalid join between $parent and $child"
+  done
+#+end_src
+
+#+RESULTS:
+| /home/user/docs |
+| /home/user/docs |
+| ~/user/docs     |
+
+*** hash
+:PROPERTIES:
+:custom_id: source-hash
+:END:
+
+#+name: sh-hash
+#+header: :noweb-ref sh-source
+#+header: :session sh-eval
+#+begin_src sh
+  #===============================================================================
+  # erw_hash <trunc_digit> <string>
+  #===============================================================================
+  function erw_hash
+  {
+      local string
+      string="$1"
+      [[ -z "$string" ]]\
+          && { echo "error: empty string"; return 1; } 
+      echo "$string" |  md5sum | cut -d '-' -f1 # | cut -c 1-"$digit"
+  }
+#+end_src
+
+#+RESULTS: sh-hash
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+begin_src sh
+  erw_hash "foo"
+#+end_src
+
+#+RESULTS:
+: d3b07384d113edec49eaa6238ad5ff00
+
+*** tex
+
+#+header: :noweb-ref sh-source
+#+header: :session sh-eval
+#+begin_src sh
+  #===============================================================================
+  # erw_tex_safe <string>
+  #===============================================================================
+  function erw_tex_safe
+  {
+      local string
+      string="${1}"
+      echo "${string}" | sed 's/_/\\_/g'
+  }
+#+end_src
+
+#+RESULTS:
+
+#+header: :noweb-ref sh-example
+#+header: :session sh-eval
+#+begin_src sh
+  erw_tex_safe "john_doe@domain.ext" || echo "error"
+#+end_src
+
+#+RESULTS:
+: john\_doe@domain.ext
+
+** fs
+
+#+header: :session sh-eval
+#+begin_src sh
+    #===============================================================================
+    # erw_redirect <json_object>
+    #===============================================================================
+    function erw_redirect {
+        local array \
+              instruct \
+              json_object \
+              keys \
+              match \
+              regex \
+              script_i \
+              script_ii \
+              script_iii \
+              source \
+              status \
+              target \
+              top_key \
+              values
+        
+        json_object=$(echo "${1}")
+        source=$(mktemp)
+        trap 'rm -f "$source"' EXIT
+
+        keys=$(echo "$json_string" | jq -r 'keys[]')
+        array=("action" "source" "target")
+        status=true
+        for key in "${array[@]}"; do
+            if ! grep -qx "$key" <<< "$keys"; then
+                status=false
+                break
+            fi
+        done
+
+
+        script_i="instruct=\$(echo \${json_object} | jq '.%s'); "
+        script_i+="keys=( \$(echo \${instruct} | jq -r 'keys | .[]') ); "
+        script_ii="key=\$(echo \${keys} | grep -E '%s'); "
+        # script_iii="value=\$(echo \${instruct} | jq -r '.$key')"
+
+        eval $(printf "${script_i}" 'source')
+        regex='url|file|string'
+        echo "DEBUG"
+        #eval $(
+        echo $keys
+        echo $(printf "${script_ii}" "${regex}")
+        #    )
+        #echo "${keys}" | grep -E "${regex}"
+        
+        #      
+        #      eval $(printf "$script" 'source')
+        #      case "$keys" in
+        #        	"url")
+        #  	    curl "${values}" -o "$source"
+        #        	    ;;
+        #        	"file")
+        #        	    "${values}" > "$source"
+        #        	    ;;
+        #        	"string")
+        #        	    echo "${values}" > "$source"
+        #        	    ;;
+        #        	,*)
+        #        	    echo "Unknown source ${keys}"
+        #        	    return 1
+        #        	    ;;
+        #      esac
+        #
+        #      eval $(printf "$script" 'target')
+        #      case "$keys" in
+        #    	"file") 
+        #    	    target="${values}"
+        #    	    ;;
+        #    	,*)
+        #    	    echo "Unknown target ${keys}"
+        #    	    return 1
+        #    	    ;;
+        #      esac  		    
+        #
+        #      eval $(printf "$script" 'action')
+        #      case "$keys" in
+        #    	"append") 
+        #    	    "${source}" >> "${target}"
+        #    	    ;;
+        #    	"append") 
+        #    	    "${source}" >> "${target}"
+        #    	    ;;
+        #    	,*)
+        #    	    echo "Unknown target ${keys}"
+        #    	    return 1
+        #    	    ;;
+        #      esac
+    }
+#+end_src
+
+#+RESULTS:
+
+#+name: json-build-instruct
+#+begin_src json
+  {
+      "action": "append",
+      "source":
+      {
+    	"url" : "https://raw.githubusercontent.com/torvalds/linux/bf4401f3ec700e1a7376a4cbf05ef40c7ffce064/README",
+  	"description" : "foo"
+      },
+      "target":
+      {
+  	"file" : "/home/erwann/.local/share/Trash/files/foo"
+      }
+  }
+#+end_src
+
+#+begin_src json
+  {
+      "touch":
+      {
+    	"file" : "/home/erwann/.local/share/Trash/files/foo"
+      }      
+  }
+#+end_src
+
+#+header: :session sh-eval
+#+header: :results verbatim raw replace
+#+header: :var json_object=(erw/noweb-concat "\n" #'identity (erw/filter-block-names "json-build-instruct"))
+#+begin_src sh
+  erw_redirect "${json_object}"
+#+end_src
+
+#+RESULTS:
+DEBUG
+description url
+key=$(echo ${keys} | grep -E 'url|file|string');
+
+
+*** ext
+
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_path_ext <prefix> <ext>
+  #===============================================================================
+  function erw_path_ext
+  {
+      local prefix ext
+      prefix="$1"
+      ext="$2"
+      echo "${prefix}.${ext}"
   }
 #+end_src
 
