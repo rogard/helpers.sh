@@ -8,13 +8,23 @@
 
 c_erw_rule='#==============================================================================='
 
-erw_this="${BASH_SOURCE[0]}"
-function erw_help
-(
-    pattern="${c_erw_rule}"
-    string=$(sed -n "/^${pattern}$/,/^${pattern}$/p" "$erw_this")
-    sed ":a; N; s/\(${pattern}\n\)\(${pattern}\)/\1/; ta; s/\n\{2,\}/\n/; P; D" <<< "${string}"
-)
+#===============================================================================
+# erw_help
+# erw_help <file>
+#===============================================================================
+function erw_help 
+{
+    local file pattern string
+    file="${1:-${BASH_SOURCE[0]}}"
+    pattern='#'
+    pattern+=$(printf '=%.0s' {1..81})
+    string=$(sed -n "/^${pattern}$/,/^${pattern}$/p" "${file}")
+    sed ":a; N; \
+s/\(${pattern}\n\)\(${pattern}\)/\1/; \
+  ta; \
+  s/\n\{2,\}/\n/; \
+  P; D" <<< "${string}"
+}
 #===============================================================================
 # c_erw_eml_regex_ar
 # c_erw_eml_regex
