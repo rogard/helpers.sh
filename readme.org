@@ -65,7 +65,17 @@ Emacs-org:
 - [[https://orgmode.org/manual/Working-with-Source-Code.html][Working with source code]]
 
 * source
-** shebang
+** elisp
+:PROPERTIES:
+:evaluate: yes
+:END:
+
+#+begin_src emacs-lisp
+  (load (expand-file-name "../persemacs/config/extra.el"))
+#+end_src
+
+** shell
+*** shebang
 :PROPERTIES:
 :custom_id: source-shebang
 :customize: yes
@@ -76,7 +86,7 @@ Emacs-org:
   #!/usr/bin/env bash
 #+end_src
 
-** this
+*** this
 
 #+name: sh-this
 #+header: :noweb-ref sh-source
@@ -84,7 +94,7 @@ Emacs-org:
   erw_this="${BASH_SOURCE[0]}"
 #+end_src
 
-** help
+*** help
 
 #+name: sh-help
 #+header: :noweb-ref sh-source
@@ -97,12 +107,12 @@ Emacs-org:
     )
 #+end_src
 
-** regex
+*** regex
 :PROPERTIES:
 :custom_id: source-eml
 :END:
 
-*** eml
+**** eml
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
@@ -120,17 +130,17 @@ Emacs-org:
 
 #+RESULTS:
 
-*** path
+**** path
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
   # c_erw_path_regex
-  # Though not using them, FYI:
+  #===============================================================================
+  # Xref:
   # https://stackoverflow.com/a/10047501
   # https://stackoverflow.com/a/42036026
-  #===============================================================================
   c_erw_path_regex='^[^[:cntrl:]]+$'
 #+end_src
 
@@ -160,8 +170,8 @@ Emacs-org:
 #+RESULTS:
 : Invalid path: /invalid/path/
 
-** predicate
-*** path
+*** predicate
+**** path
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
@@ -197,7 +207,7 @@ Emacs-org:
 
 #+RESULTS:
 
-*** eml
+**** eml
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
@@ -226,7 +236,7 @@ Emacs-org:
 #+RESULTS:
 : error: john[At]domain.ext
 
-*** exit_ok
+**** exit_ok
 
 #+header: :noweb-ref sh-source
 #+begin_src sh
@@ -239,8 +249,8 @@ Emacs-org:
   }
 #+end_src
 
-** text
-*** fields_count
+*** text
+**** fields_count
 
 #+header: :noweb-ref sh-source
 #+header: :session sh-eval
@@ -275,12 +285,12 @@ Emacs-org:
 | 3 |
 | 4 |
 
-** string
+*** string
 :PROPERTIES:
 :custom_id: source-bool
 :END:
-*** path
-**** join
+**** path
+***** join
 
 #+header: :noweb-ref sh-source
 #+header: :session sh-eval
@@ -296,7 +306,7 @@ Emacs-org:
       result="${parent}/${child}"
       erw_path_p "${result}" \
   	|| {
-  	format='error: %s does not match %s';
+  	format='%s does not match %s';
   	printf "$format" "$result" "";
   	return 1;
       }
@@ -319,7 +329,7 @@ Emacs-org:
       parent=$(echo "$test_case" | awk -F$'\t' '{print $1}')
       child=$(echo "$test_case" | awk -F$'\t' '{print $2}')
       erw_path_join "${parent}" "${child}"\
-  	|| echo "error: invalid join between $parent and $child"
+  	|| echo "invalid join between $parent and $child"
   done
 #+end_src
 
@@ -328,7 +338,7 @@ Emacs-org:
 | /home/user/docs |
 | ~/user/docs     |
 
-*** hash
+**** hash
 :PROPERTIES:
 :custom_id: source-hash
 :END:
@@ -345,7 +355,7 @@ Emacs-org:
       local string
       string="$1"
       [[ -z "$string" ]]\
-          && { echo "error: empty string"; return 1; } 
+          && { echo "empty string"; return 1; } 
       echo "$string" |  md5sum | cut -d '-' -f1 # | cut -c 1-"$digit"
   }
 #+end_src
@@ -361,7 +371,7 @@ Emacs-org:
 #+RESULTS:
 : d3b07384d113edec49eaa6238ad5ff00
 
-*** tex
+**** tex
 
 #+header: :noweb-ref sh-source
 #+header: :session sh-eval
@@ -387,170 +397,6 @@ Emacs-org:
 
 #+RESULTS:
 : john\_doe@domain.ext
-
-** fs
-
-#+header: :session sh-eval
-#+begin_src sh
-  #===============================================================================
-  # erw_redirect <json_object>
-  #===============================================================================
-  function erw_redirect {
-      local array \
-            instruct \
-            json_object \
-            keys \
-            match \
-            regex \
-            script_i \
-            script_ii \
-            script_iii \
-            source \
-            status \
-            target \
-            top_key \
-            values
-      
-      json_object=$(echo "${1}")
-      source=$(mktemp)
-      trap 'rm -f "$source"' EXIT
-
-      keys=( $(echo "${json_object}" | jq -r 'keys[]') )
-      array=("action" "source" "target")
-      array=($(
-  	       grep -Fvx -f <(printf '%s\n' "${keys[@]}")\
-  		    <(printf '%s\n' "${array[@]}")
-  	   ))
-      (( ${#array[@]} == 0 ))\
-        	|| {
-    	printf 'missing keys: ';
-    	printf '%s\n' "${array[@]}";
-    	return 1;
-      }
-
-
-      #      script_i="instruct=\$(echo \${json_object} | jq '.%s'); "
-      #      script_i+="keys=( \$(echo \${instruct} | jq -r 'keys | .[]') ); "
-      #      script_ii="key=\$(echo \${keys} | grep -E '%s'); "
-      #      # script_iii="value=\$(echo \${instruct} | jq -r '.$key')"
-      #
-      #      eval $(printf "${script_i}" 'source')
-      #      regex='url|file|string'
-      #      echo "DEBUG"
-      #      #eval $(
-      #      echo "${keys[@]}"
-      #
-      #      status='false'
-      #      for key in "${keys[@]}"; do
-      #    	if [[ "${key}" =~ $regex ]]; then
-      #    	    status='true'
-      #    	    break
-      #    	fi
-      #      done
-      #      [[ status=='true' ]] \
-  	#  	  || echo "error: no match for $regex in ${keys[@]}"
-
-      # echo $(printf "${script_ii}" "${regex}")
-      #    )
-      #echo "${keys}" | grep -E "${regex}"
-
-      #      
-      #      eval $(printf "$script" 'source')
-      #      case "$keys" in
-      #        	"url")
-      #  	    curl "${values}" -o "$source"
-      #        	    ;;
-      #        	"file")
-      #        	    "${values}" > "$source"
-      #        	    ;;
-      #        	"string")
-      #        	    echo "${values}" > "$source"
-      #        	    ;;
-      #        	,*)
-      #        	    echo "Unknown source ${keys}"
-      #        	    return 1
-      #        	    ;;
-      #      esac
-      #
-      #      eval $(printf "$script" 'target')
-      #      case "$keys" in
-      #    	"file") 
-      #    	    target="${values}"
-      #    	    ;;
-      #    	,*)
-      #    	    echo "Unknown target ${keys}"
-      #    	    return 1
-      #    	    ;;
-      #      esac  		    
-      #
-      #      eval $(printf "$script" 'action')
-      #      case "$keys" in
-      #    	"append") 
-      #    	    "${source}" >> "${target}"
-      #    	    ;;
-      #    	"append") 
-      #    	    "${source}" >> "${target}"
-      #    	    ;;
-      #    	,*)
-      #    	    echo "Unknown target ${keys}"
-      #    	    return 1
-      #    	    ;;
-      #      esac
-  }
-#+end_src
-
-#+RESULTS:
-
-#+name: json-build-instruct
-#+begin_src json
-  {
-      "action": "append",
-      "source":
-      {
-    	"url" : "https://raw.githubusercontent.com/torvalds/linux/bf4401f3ec700e1a7376a4cbf05ef40c7ffce064/README",
-  	"description" : "foo"
-      },
-      "target":
-      {
-  	"file" : "/home/erwann/.local/share/Trash/files/foo"
-      }
-  }
-#+end_src
-
-#+begin_src json
-  {
-      "touch":
-      {
-    	"file" : "/home/erwann/.local/share/Trash/files/foo"
-      }      
-  }
-#+end_src
-
-#+header: :session sh-eval
-#+header: :results verbatim raw replace
-#+header: :var json_object=(erw/noweb-concat "\n" #'identity (erw/filter-block-names "json-build-instruct"))
-#+begin_src sh
-  erw_redirect "${json_object}"
-#+end_src
-
-#+RESULTS:
-missing keys: acxion
-
-*** ext
-
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_path_ext <prefix> <ext>
-  #===============================================================================
-  function erw_path_ext
-  {
-      local prefix ext
-      prefix="$1"
-      ext="$2"
-      echo "${prefix}.${ext}"
-  }
-#+end_src
 
 * tangle
 :PROPERTIES:

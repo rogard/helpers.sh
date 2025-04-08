@@ -26,10 +26,10 @@ c_erw_dns_regex_ar=(
 c_erw_eml_regex=$(printf '%s' "${c_erw_dns_regex_ar[@]}")
 #===============================================================================
 # c_erw_path_regex
-# Though not using them, FYI:
+#===============================================================================
+# Xref:
 # https://stackoverflow.com/a/10047501
 # https://stackoverflow.com/a/42036026
-#===============================================================================
 c_erw_path_regex='^[^[:cntrl:]]+$'
 #===============================================================================
 # erw_path_p <string>
@@ -76,7 +76,7 @@ function erw_path_join
     result="${parent}/${child}"
     erw_path_p "${result}" \
 	|| {
-	format='error: %s does not match %s';
+	format='%s does not match %s';
 	printf "$format" "$result" "";
 	return 1;
     }
@@ -90,7 +90,7 @@ function erw_hash
     local string
     string="$1"
     [[ -z "$string" ]]\
-        && { echo "error: empty string"; return 1; } 
+        && { echo "empty string"; return 1; } 
     echo "$string" |  md5sum | cut -d '-' -f1 # | cut -c 1-"$digit"
 }
 #===============================================================================
@@ -101,14 +101,4 @@ function erw_tex_safe
     local string
     string="${1}"
     echo "${string}" | sed 's/_/\\_/g'
-}
-#===============================================================================
-# erw_path_ext <prefix> <ext>
-#===============================================================================
-function erw_path_ext
-{
-    local prefix ext
-    prefix="$1"
-    ext="$2"
-    echo "${prefix}.${ext}"
 }
