@@ -117,39 +117,7 @@ Emacs-org:
 :custom_id: source-eml
 :END:
 
-**** function
-***** conjunct
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-helper
-#+begin_src sh
-function erw_regex_conjunct {
-    local ifs disjunct_ar
-    ifs=$1; shift
-    disjunct_ar=("${@}")
-    (IFS="$ifs"; printf "%s" "${disjunct_ar[*]}")
-}
-#+end_src
-
-#+RESULTS:
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-example
-#+begin_src sh
-  test_cases_ar=('foo' 'bar' 'qux')
-  regex=$(erw_regex_conjunct $'\t' "${test_cases_ar[@]}")
-
-  line='foo'$'\t''bar'$'\t''qux'$'\t'
-
-  [[ "$line" =~ "$regex" ]] || echo "error 1"
-
-  [[ "$line" == "$regex"$'\t' ]] || echo "error 2"
-#+end_src
-
-#+RESULTS:
-
-**** assoc
-***** declare
+**** declare
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
@@ -159,7 +127,7 @@ function erw_regex_conjunct {
 
 #+RESULTS:
 
-***** eml
+**** eml
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
@@ -195,7 +163,7 @@ function erw_regex_conjunct {
 #+RESULTS:
 : error: john[At]domain.ext
 
-***** path
+**** path
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
@@ -234,6 +202,58 @@ function erw_regex_conjunct {
 
 #+RESULTS:
 : Invalid path: /invalid/path/
+
+*** filesys
+
+**** path
+***** join
+
+#+header: :noweb-ref sh-source
+#+header: :session sh-eval
+#+begin_src sh
+  #===============================================================================
+  # erw_path_join <parent> <child>
+  #===============================================================================
+  function erw_path_join
+  {
+      local parent child result
+      parent="${1%/}"
+      child="${2#/}"
+      result="${parent}/${child}"
+      erw_path_p "${result}" \
+  	|| {
+  	format='%s does not match %s';
+  	printf "$format" "$result" "";
+  	return 1;
+      }
+      echo "${result}"
+  }
+#+end_src
+
+#+RESULTS:
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+begin_src sh
+  test_cases_ar=(
+      "/home	user/docs"
+      "/home/	user/docs"
+      "~/	/user/docs"
+  )
+
+  for test_case in "${test_cases_ar[@]}"; do
+      parent=$(echo "$test_case" | awk -F$'\t' '{print $1}')
+      child=$(echo "$test_case" | awk -F$'\t' '{print $2}')
+      erw_path_join "${parent}" "${child}"\
+  	|| echo "invalid join between $parent and $child"
+  done
+#+end_src
+
+#+RESULTS:
+| /home/user/docs |
+| /home/user/docs |
+| ~/user/docs     |
+
 
 *** predicate
 **** exit_ok
@@ -289,29 +309,17 @@ function erw_regex_conjunct {
 :PROPERTIES:
 :custom_id: source-bool
 :END:
-**** path
-***** join
+**** join
 
-#+header: :noweb-ref sh-source
 #+header: :session sh-eval
+#+header: :noweb-ref sh-helper
 #+begin_src sh
-  #===============================================================================
-  # erw_path_join <parent> <child>
-  #===============================================================================
-  function erw_path_join
-  {
-      local parent child result
-      parent="${1%/}"
-      child="${2#/}"
-      result="${parent}/${child}"
-      erw_path_p "${result}" \
-  	|| {
-  	format='%s does not match %s';
-  	printf "$format" "$result" "";
-  	return 1;
-      }
-      echo "${result}"
-  }
+function erw_string_join {
+    local ifs disjunct_ar
+    ifs=$1; shift
+    disjunct_ar=("${@}")
+    (IFS="$ifs"; printf "%s" "${disjunct_ar[*]}")
+}
 #+end_src
 
 #+RESULTS:
@@ -319,26 +327,30 @@ function erw_regex_conjunct {
 #+header: :session sh-eval
 #+header: :noweb-ref sh-example
 #+begin_src sh
-  test_cases_ar=(
-      "/home	user/docs"
-      "/home/	user/docs"
-      "~/	/user/docs"
-  )
+  test_cases_ar=('foo' 'bar' 'qux')
+  regex=$(erw_string_join $'\t' "${test_cases_ar[@]}")
 
-  for test_case in "${test_cases_ar[@]}"; do
-      parent=$(echo "$test_case" | awk -F$'\t' '{print $1}')
-      child=$(echo "$test_case" | awk -F$'\t' '{print $2}')
-      erw_path_join "${parent}" "${child}"\
-  	|| echo "invalid join between $parent and $child"
-  done
+  line='foo'$'\t''bar'$'\t''qux'$'\t'
+
+  [[ "$line" =~ "$regex" ]] || echo "error 1"
+
+  [[ "$line" == "$regex"$'\t' ]] || echo "error 2"
 #+end_src
 
 #+RESULTS:
-| /home/user/docs |
-| /home/user/docs |
-| ~/user/docs     |
 
-**** tex
+#+begin_src sh
+  echo "$IFS"
+#+end_src
+
+#+RESULTS:
+|   |
+|   |
+
+*** tex
+
+TODO
+- Put the substitions in an array
 
 #+header: :noweb-ref sh-source
 #+header: :session sh-eval
