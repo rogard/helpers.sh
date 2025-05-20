@@ -123,27 +123,29 @@ Emacs-org:
 #+header: :session sh-eval
 #+header: :noweb-ref sh-helper
 #+begin_src sh
-  function erw_regex_conjunct
-  {
-      local ifs disjunct_ar
-      ifs="$1"; shift
-      disjunct_ar=("${@}")
-      echo $(IFS="$ifs"; echo "${disjunct_ar[*]}")
-  }
+function erw_regex_conjunct {
+    local ifs disjunct_ar
+    ifs=$1; shift
+    disjunct_ar=("${@}")
+    (IFS="$ifs"; printf "%s" "${disjunct_ar[*]}")
+}
 #+end_src
 
 #+RESULTS:
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-example
-#+header: :results raw
 #+begin_src sh
-  test_cases_ar=('foo' 'bar' 'qux')
-  erw_regex_conjunct "|" "${test_cases_ar[@]}"
+test_cases_ar=('foo' 'bar' 'qux')
+compound=$(erw_regex_conjunct $'\t' "${test_cases_ar[@]}")
+
+# Add trailing tab to match final $'\t'
+regex='foo'$'\t''bar'$'\t''qux'$'\t'
+
+[[ "$compound"$'\t' == "$regex" ]] || echo "error"
 #+end_src
 
 #+RESULTS:
-foo|bar|qux
 
 **** assoc
 ***** declare
