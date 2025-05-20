@@ -25,23 +25,23 @@ s/\(${pattern}\n\)\(${pattern}\)/\1/; \
   s/\n\{2,\}/\n/; \
   P; D" <<< "${string}"
 }
-declare -A erw_regex_ar
+declare -A c_erw_regex_ar
 #===============================================================================
-# erw_eml_regex_ar
-# erw_eml_regex['eml']
+# c_erw_eml_regex_ar
+# c_erw_eml_regex['eml']
 #===============================================================================
-erw_dns_regex_ar=(
+c_erw_dns_regex_ar=(
     # local             at  sld              tld
     '[[:alnum:]_.%+-]+' '@' '[[:alnum:].-]+' '\.[[:alpha:]]{2,}'
 )
-erw_regex_ar['eml']=$(printf '%s' "${erw_dns_regex_ar[@]}")
+c_erw_regex_ar['eml']=$(printf '%s' "${c_erw_dns_regex_ar[@]}")
 #===============================================================================
-# erw_regex_ar['path']
+# c_erw_regex_ar['path']
 #===============================================================================
 # Xref:
 # https://stackoverflow.com/a/10047501
 # https://stackoverflow.com/a/42036026
-erw_regex_ar['path']=('^[^[:cntrl:]]+$')
+c_erw_regex_ar['path']=('^[^[:cntrl:]]+$')
 #===============================================================================
 # erw_path_join <parent> <child>
 #===============================================================================

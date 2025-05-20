@@ -393,11 +393,7 @@ Do:
   <<doc-license()>>
 #+end_src
 
-TODO:
-- ~c_erw_rule~ is (was?) used by ~erw_help~. Clumsy.
-
 #+header: :noweb yes
-#+header: :var c_erw_rule=(car (split-string (org-babel-ref-resolve "doc-license") "\n"))
 #+begin_src sh
   <<sh-preamble>>
   <<sh-source>>
