@@ -136,13 +136,14 @@ function erw_regex_conjunct {
 #+header: :session sh-eval
 #+header: :noweb-ref sh-example
 #+begin_src sh
-test_cases_ar=('foo' 'bar' 'qux')
-compound=$(erw_regex_conjunct $'\t' "${test_cases_ar[@]}")
+  test_cases_ar=('foo' 'bar' 'qux')
+  regex=$(erw_regex_conjunct $'\t' "${test_cases_ar[@]}")
 
-# Add trailing tab to match final $'\t'
-regex='foo'$'\t''bar'$'\t''qux'$'\t'
+  line='foo'$'\t''bar'$'\t''qux'$'\t'
 
-[[ "$compound"$'\t' == "$regex" ]] || echo "error"
+  [[ "$line" =~ "$regex" ]] || echo "error 1"
+
+  [[ "$line" == "$regex"$'\t' ]] || echo "error 2"
 #+end_src
 
 #+RESULTS:
