@@ -335,39 +335,6 @@ foo|bar|qux
 | /home/user/docs |
 | ~/user/docs     |
 
-**** hash
-:PROPERTIES:
-:custom_id: source-hash
-:END:
-
-#+name: sh-hash
-#+header: :noweb-ref sh-source
-#+header: :session sh-eval
-#+begin_src sh
-  #===============================================================================
-  # erw_hash <trunc_digit> <string>
-  #===============================================================================
-  function erw_hash
-  {
-      local string
-      string="$1"
-      [[ -z "$string" ]]\
-          && { echo "empty string"; return 1; } 
-      echo "$string" |  md5sum | cut -d '-' -f1 # | cut -c 1-"$digit"
-  }
-#+end_src
-
-#+RESULTS: sh-hash
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-example
-#+begin_src sh
-  erw_hash "foo"
-#+end_src
-
-#+RESULTS:
-: d3b07384d113edec49eaa6238ad5ff00
-
 **** tex
 
 #+header: :noweb-ref sh-source
@@ -413,3 +380,38 @@ foo|bar|qux
   <<sh-preamble>>
   <<sh-source>>
 #+end_src
+
+* trash
+
+** hash
+:PROPERTIES:
+:custom_id: source-hash
+:END:
+
+#+name: sh-hash
+#+begin_src sh
+  #===============================================================================
+  # erw_hash <trunc_digit> <string>
+  #===============================================================================
+  function erw_hash
+  {
+      local string
+      string="$1"
+      [[ -z "$string" ]]\
+          && { echo "empty string"; return 1; } 
+      echo "$string" |  md5sum | cut -d '-' -f1 # | cut -c 1-"$digit"
+  }
+#+end_src
+
+#+RESULTS: sh-hash
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+begin_src sh
+  erw_hash "foo"
+#+end_src
+
+#+RESULTS:
+: d3b07384d113edec49eaa6238ad5ff00
+
+
