@@ -86,6 +86,8 @@ Emacs-org:
   #!/usr/bin/env bash
 #+end_src
 
+#+RESULTS: sh-shebang
+
 *** help
 
 #+name: sh-help
@@ -115,36 +117,93 @@ Emacs-org:
 :custom_id: source-eml
 :END:
 
-**** eml
+**** function
+***** conjunct
 
 #+header: :session sh-eval
-#+header: :noweb-ref sh-source
+#+header: :noweb-ref sh-helper
 #+begin_src sh
-  #===============================================================================
-  # c_erw_eml_regex_ar
-  # c_erw_eml_regex
-  #===============================================================================
-  c_erw_dns_regex_ar=(
-      # local             at  sld              tld
-      '[[:alnum:]_.%+-]+' '@' '[[:alnum:].-]+' '\.[[:alpha:]]{2,}'
-  )
-  c_erw_eml_regex=$(printf '%s' "${c_erw_dns_regex_ar[@]}")
+  function erw_regex_conjunct
+  {
+      local ifs disjunct_ar
+      ifs="$1"; shift
+      disjunct_ar=("${@}")
+      echo $(IFS="$ifs"; echo "${disjunct_ar[*]}")
+  }
 #+end_src
 
 #+RESULTS:
 
-**** path
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+header: :results raw
+#+begin_src sh
+  test_cases_ar=('foo' 'bar' 'qux')
+  erw_regex_conjunct "|" "${test_cases_ar[@]}"
+#+end_src
+
+#+RESULTS:
+foo|bar|qux
+
+**** assoc
+***** declare
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  declare -A erw_regex_ar
+#+end_src
+
+#+RESULTS:
+
+***** eml
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
-  # c_erw_path_regex
+  # erw_eml_regex_ar
+  # erw_eml_regex['eml']
+  #===============================================================================
+#+end_src
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  erw_dns_regex_ar=(
+      # local             at  sld              tld
+      '[[:alnum:]_.%+-]+' '@' '[[:alnum:].-]+' '\.[[:alpha:]]{2,}'
+  )
+  erw_regex_ar['eml']=$(printf '%s' "${erw_dns_regex_ar[@]}")
+#+end_src
+
+#+RESULTS:
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-example
+#+begin_src sh
+  test_cases_ar=('john@domain.ext' 'john[At]domain.ext')
+  for eml in "${test_cases_ar[@]}"; do
+      regex="${erw_regex_ar['eml']}"
+      [[ "$eml" =~ $regex  ]] || echo "error: $eml"
+  done
+#+end_src
+
+#+RESULTS:
+: error: john[At]domain.ext
+
+***** path
+
+#+header: :session sh-eval
+#+header: :noweb-ref sh-source
+#+begin_src sh
+  #===============================================================================
+  # erw_regex_ar['path']
   #===============================================================================
   # Xref:
   # https://stackoverflow.com/a/10047501
   # https://stackoverflow.com/a/42036026
-  c_erw_path_regex='^[^[:cntrl:]]+$'
+  erw_regex_ar['path']=('^[^[:cntrl:]]+$')
 #+end_src
 
 #+RESULTS:
@@ -174,71 +233,6 @@ Emacs-org:
 : Invalid path: /invalid/path/
 
 *** predicate
-**** path
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_path_p <string>
-  #===============================================================================
-  function erw_path_p
-  {
-      local string
-      string="${1}"
-      [[ "$string" =~ ^${c_erw_path_regex}$ ]]
-  }
-#+end_src
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-example
-#+begin_src sh
-  test_cases_ar=(
-      "~/user/docs"
-      "/tmp//somefile"
-      "/path/to/dir/with_subdir"
-      "/valid_path_with+characters"
-      "/invalid/path/\x01"
-      "/another//double/slash"
-  )
-
-  for test_case in "${test_cases_ar[@]}"; do
-      erw_path_p "${test_case}" \
-  	|| { echo "Invalid path: ${test_case}"; }
-  done
-#+end_src
-
-#+RESULTS:
-
-**** eml
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-source
-#+begin_src sh
-  #===============================================================================
-  # erw_eml_address_p <string>
-  #===============================================================================
-  function erw_eml_address_p
-  (
-      string="${1}"
-      [[ "${string}" =~ ^${c_erw_eml_regex}$ ]] 
-  )
-#+end_src
-
-#+RESULTS:
-
-#+header: :session sh-eval
-#+header: :noweb-ref sh-example
-#+begin_src sh
-  test_cases_ar=('john@domain.ext' 'john[At]domain.ext')
-  for eml in "${test_cases_ar[@]}"; do
-      erw_eml_address_p "$eml" || echo "error: $eml"
-  done
-#+end_src
-
-#+RESULTS:
-: error: john[At]domain.ext
-
 **** exit_ok
 
 #+header: :noweb-ref sh-source
