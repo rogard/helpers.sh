@@ -122,7 +122,7 @@ Emacs-org:
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
 #+begin_src sh
-  declare -A erw_regex_ar
+  declare -A c_erw_regex_ar
 #+end_src
 
 #+RESULTS:
@@ -133,19 +133,19 @@ Emacs-org:
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
-  # erw_eml_regex_ar
-  # erw_eml_regex['eml']
+  # c_erw_eml_regex_ar
+  # c_erw_eml_regex['eml']
   #===============================================================================
 #+end_src
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
 #+begin_src sh
-  erw_dns_regex_ar=(
+  c_erw_dns_regex_ar=(
       # local             at  sld              tld
       '[[:alnum:]_.%+-]+' '@' '[[:alnum:].-]+' '\.[[:alpha:]]{2,}'
   )
-  erw_regex_ar['eml']=$(printf '%s' "${erw_dns_regex_ar[@]}")
+  c_erw_regex_ar['eml']=$(printf '%s' "${c_erw_dns_regex_ar[@]}")
 #+end_src
 
 #+RESULTS:
@@ -155,7 +155,7 @@ Emacs-org:
 #+begin_src sh
   test_cases_ar=('john@domain.ext' 'john[At]domain.ext')
   for eml in "${test_cases_ar[@]}"; do
-      regex="${erw_regex_ar['eml']}"
+      regex="${c_erw_regex_ar['eml']}"
       [[ "$eml" =~ $regex  ]] || echo "error: $eml"
   done
 #+end_src
@@ -169,12 +169,12 @@ Emacs-org:
 #+header: :noweb-ref sh-source
 #+begin_src sh
   #===============================================================================
-  # erw_regex_ar['path']
+  # c_erw_regex_ar['path']
   #===============================================================================
   # Xref:
   # https://stackoverflow.com/a/10047501
   # https://stackoverflow.com/a/42036026
-  erw_regex_ar['path']=('^[^[:cntrl:]]+$')
+  c_erw_regex_ar['path']=('^[^[:cntrl:]]+$')
 #+end_src
 
 #+RESULTS:
@@ -253,7 +253,6 @@ Emacs-org:
 | /home/user/docs |
 | /home/user/docs |
 | ~/user/docs     |
-
 
 *** predicate
 **** exit_ok
@@ -383,11 +382,19 @@ TODO
 :header-args: :tangle ./source/helpers.sh
 :END:
 
+Do:
+- ~M-x org-narrow-to-subtree~
+- ~M-x org-babel-tangle~
+- ~M-x widen~
+
 #+header: :noweb yes
 #+begin_src sh
   <<sh-shebang>>
   <<doc-license()>>
 #+end_src
+
+TODO:
+- ~c_erw_rule~ is (was?) used by ~erw_help~. Clumsy.
 
 #+header: :noweb yes
 #+header: :var c_erw_rule=(car (split-string (org-babel-ref-resolve "doc-license") "\n"))
