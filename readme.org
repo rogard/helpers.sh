@@ -134,12 +134,13 @@ Emacs-org:
 #+begin_src sh
   #===============================================================================
   # c_erw_eml_regex_ar
-  # c_erw_eml_regex['eml']
+  # c_erw_regex_ar['eml']
   #===============================================================================
 #+end_src
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-source
+#+header: :results output
 #+begin_src sh
   c_erw_dns_regex_ar=(
       # local             at  sld              tld
@@ -149,6 +150,7 @@ Emacs-org:
 #+end_src
 
 #+RESULTS:
+: [[:alnum:]_.%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}
 
 #+header: :session sh-eval
 #+header: :noweb-ref sh-example
@@ -171,10 +173,9 @@ Emacs-org:
   #===============================================================================
   # c_erw_regex_ar['path']
   #===============================================================================
-  # Xref:
   # https://stackoverflow.com/a/10047501
   # https://stackoverflow.com/a/42036026
-  c_erw_regex_ar['path']=('^[^[:cntrl:]]+$')
+  c_erw_regex_ar['path']='^[^[:cntrl:]]+$'
 #+end_src
 
 #+RESULTS:
@@ -311,7 +312,7 @@ Emacs-org:
 **** join
 
 #+header: :session sh-eval
-#+header: :noweb-ref sh-helper
+#+header: :noweb-ref sh-source
 #+begin_src sh
 function erw_string_join {
     local ifs disjunct_ar
