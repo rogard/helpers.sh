@@ -1,0 +1,158 @@
+#+title: er317_clone.org
+#+author: Erwann Rogard
+
+#+name: doc-lead
+#+begin_src org
+  generate a 
+#+end_src
+
+* sh
+:PROPERTIES:
+:header-args: :tangle ../sh/er317_clone.sh
+:END:
+
+Execute:
+~M-x org-narrow-to-subtree~
+~M-x org-babel-tangle~
+~M-x widen~
+
+** header
+
+#+header: :noweb-ref sh-header
+#+begin_src sh
+    #!/usr/bin/env bash
+#+end_src
+
+#+header: :noweb-ref sh-header
+#+begin_src sh
+  #===============================================================================
+  #  er317_clone.sh — clones a given file to a uniquely named file
+  #
+  #  Author: Erwann Rogard
+  #  License: GPL 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
+  #
+  #  Usage:
+  #    ./er317_clone.sh [options] <file>
+  #    ./er317_clone.sh --demo
+  #  Options:
+  #    --dry-run
+  #===============================================================================
+#+end_src
+
+** config
+
+#+name: sh-config
+#+begin_src sh
+  # --- CONFIGURATION ------------------------------------------------------------
+  fallback_unique_dir="$HOME/unique"
+  fallback_unique_log="$HOME/.local/share/unique.log"
+  fallback_trash_dir="$HOME/.local/share/Trash"
+  fallback_unique_fun()
+  {
+      local var
+      var=$(mktemp -u)
+      echo "${var##*/tmp.}"
+  }
+  # ------------------------------------------------------------------------------
+#+end_src
+
+** main
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  source_file="${1}"
+  [[ -f "$source_file" ]] \
+      || {
+      printf 'error: %s not a file\n' "$source_file"
+      exit 1
+  }
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  for name in unique_dir unique_log trash_dir; do
+      fallback_var="fallback_${name}"
+      [[ -z "${!name}" ]] && declare "$name"="${!fallback_var}"
+  done
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  [[ -d "${unique_dir}" ]] \
+      || {
+      printf 'error: %s not a directory\n' "$unique_dir"
+      exit 1
+  }
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  [[ -f "${unique_log}" ]] || {
+      printf 'error: %s not a file\n' "$unique_log"
+      exit 1
+  }
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  for name in unique_fun; do
+      fallback_fun="$fallback_${name}"
+      if ! declare -F "$name" >/dev/null && declare -F "$fallback_fun" >/dev/null; then
+          eval "$(declare -f "$fallback_fun" | sed "s/^$fallback_fun/$name/")"
+      fi
+  done
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh-main
+target_file="${unique_dir%/}/"
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  target_file+=$(unique_fun)
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  target_ext="${source_file##*.}"
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  [[ -z "${target_ext}" ]] || {
+      target_file+=".${target_ext}"
+  }
+#+end_src
+
+#+begin_src sh
+  # --- SIDE EFFECT --------------------------------------------------------------
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  msg_format=$(printf 'copy %s to %s: %%s\n' "$source_file" "$target_file")  
+  if cp "$source_file" "$target_file"; then
+      printf "$msg_format" 'pass'
+  else
+      echo "error: "
+      printf "$msg_format" 'fail'
+      exit 1
+  fi
+#+end_src
+
+#+header: :noweb-ref sh-main
+#+begin_src sh
+  msg_format=$(printf 'mv %s to %s: %%s\n' "$source_file" "$trash_dir")
+  if mv "$source_file" "${trash_dir%/}/$(basename "$source_file")"; then
+      printf "$msg_format" 'pass'
+  else
+      echo "error: "
+      printf "$msg_format" 'fail'
+      exit 1
+  fi
+#+end_src
+
+#+begin_src sh
+  exit 0
+#+end_src
