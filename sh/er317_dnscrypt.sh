@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
+
 #===============================================================================
-#  dnscrypt-toggle.sh — Toggle DNS resolution through dnscrypt-proxy
+#  er317_dnscrypt.sh — Toggle DNS resolution through dnscrypt-proxy
 #
 #  Author: Erwann Rogard
 #  License: GPL 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
@@ -9,21 +10,22 @@
 #    Customize variables below
 #
 #  Usage:
-#    ./dnscrypt-toggle.sh --enable
-#    ./dnscrypt-toggle.sh --disable
+#    ./er317_dnscrypt.sh --enable
+#    ./er317_dnscrypt.sh --disable
 #===============================================================================
 
-# --- CONFIGURABLE VARIABLES --------------------------------------------------
+set -euo pipefail
+# Reminder:
+# `true|false` to be inside a subshell `()` o/w `set -e` will stop execution.
+
+# --- CONFIGURATION ------------------------------------------------------------
 localhost_ip='127.0.0.1'
 dns_port='53'
 conn_name="ATTh3ecQs2"
 dnscrypt_conf="/etc/dnscrypt-proxy/dnscrypt-proxy.toml"
-# -----------------------------------------------------------------------------
 
-# --- DERIVED CHECK PATTERN ---------------------------------------------------
 escaped_ip=${localhost_ip//./\\.}
 pattern="^listen_addresses = \['${escaped_ip}:${dns_port}'\]"
-# -----------------------------------------------------------------------------
 
 if (( EUID == 0 )); then
   echo "❌ Script is being run with sudo."
