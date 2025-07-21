@@ -1,17 +1,68 @@
-#+title: er317_clone.org
+#+title: readme.org
 #+author: Erwann Rogard
 
 #+name: doc-lead
 #+begin_src org
-  This is a meta-file for =er317_clone.sh= and related files.
+  This is an Emacs Org meta-file.
 #+end_src
 
 * sh
 ** shared
+*** shebang
 
 #+name: sh-shebang
 #+begin_src sh
   #!/usr/bin/env bash
+#+end_src
+
+*** safer
+
+#+header: :noweb-ref sh-safer
+#+begin_src sh
+  set -euo pipefail
+#+end_src
+
+#+header: :noweb-ref sh-safer
+#+begin_src sh
+# Reminder:
+# `true|false` to be inside a subshell `()` o/w `set -e` will stop execution.
+#+end_src
+
+*** variable
+
+#+name: sh-declare-var-else-fallback
+#+begin_src sh
+  for name in ${array[@]}; do
+      fallback_var="fallback_${name}"
+      [[ -z "${!name-}" ]] && declare "$name"="${!fallback_var}"
+  done
+#+end_src
+
+*** function
+
+#+name: sh-fallback-msg-fun
+#+begin_src sh
+  fallback_msg_fun()
+  {
+      local msg status symb
+      status="$1"
+      msg="$2"
+      case $status in
+      	0) symb=✅;;
+      	,*) symb=❌;;
+      esac
+      printf '%s %s\n' "$symb" "$msg" >&2
+  }
+#+end_src
+
+#+name: sh-declare-fun-else-fallback
+#+begin_src sh
+  for name in ${array[@]}; do
+      fallback_fun="fallback_${name}"
+      if ! declare -F "$name" >/dev/null && declare -F "$fallback_fun" >/dev/null; then
+          eval "$(declare -f "$fallback_fun" | sed "s/^$fallback_fun/$name/")"
+      fi
+  done  
 #+end_src
 
 ** clone
@@ -27,12 +78,13 @@ Execute:
 
 **** header
 
-#+header: :noweb-ref sh-header
+#+header: :noweb-ref sh-clone
+#+header: :noweb yes
 #+begin_src sh
   <<sh-shebang>>
 #+end_src
 
-#+header: :noweb-ref sh-header
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   #===============================================================================
   #  er317_clone.sh — clones a given file to a uniquely named file
@@ -52,36 +104,35 @@ Execute:
 
 **** safer
 
-#+header: :noweb-ref sh-safer
+#+header: :noweb-ref sh-clone
+#+header: :noweb yes
 #+begin_src sh
-  set -euo pipefail
-#+end_src
-
-#+header: :noweb-ref sh-safer
-#+begin_src sh
-# Reminder:
-# `true|false` to be inside a subshell `()` o/w `set -e` will stop execution.
+  <<sh-safer>>
 #+end_src
 
 **** config
 
-#+name: sh-config
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   # --- CONFIGURATION ------------------------------------------------------------
   fallback_unique_dir="$HOME/unique"
   fallback_unique_log="$HOME/.local/share/unique.log"
   fallback_trash_dir="$HOME/.local/share/Trash/files"
-  fallback_msg_fun()
-  {
-      local msg status symb
-      status="$1"
-      msg="$2"
-      case $status in
-      	0) symb=✅;;
-      	,*) symb=❌;;
-      esac
-      printf '%s %s\n' "$symb" "$msg" >&2
-  }
+#+end_src
+
+#+header: :noweb-ref sh-clone
+#+begin_src sh
+  array=('unique_dir' 'unique_log' 'trash_dir')
+#+end_src
+
+#+header: :noweb-ref sh-clone
+#+header: :noweb yes
+#+begin_src sh
+  <<sh-declare-var-else-fallback>>
+#+end_src
+
+#+header: :noweb-ref sh-clone
+#+begin_src sh
   fallback_recurse_fun() {
       exec "${BASH_SOURCE[0]}" \
   	 --dry-run="$dryrun_flag" \
@@ -95,61 +146,92 @@ Execute:
       var=$(mktemp -u)
       echo "${var##*/tmp.}"
   }
+#+end_src
+
+#+header: :noweb-ref sh-clone
+#+header: :noweb yes
+#+begin_src sh
+  <<sh-fallback-msg-fun>>
+#+end_src
+
+#+header: :noweb-ref sh-clone
+#+header: :noweb yes
+#+begin_src sh
   # ------------------------------------------------------------------------------
 #+end_src
 
-#+header: :noweb-ref sh-main
+**** set
+
+#+header: :noweb-ref sh-clone
 #+begin_src sh
-  for name in msg_fun recurse_fun unique_fun; do
-      fallback_fun="fallback_${name}"
-      if ! declare -F "$name" >/dev/null && declare -F "$fallback_fun" >/dev/null; then
-          eval "$(declare -f "$fallback_fun" | sed "s/^$fallback_fun/$name/")"
-      fi
-  done
+  #  array=('unique_dir' 'unique_log' 'trash_dir')
+  array=('unique_dir' 'trash_dir')
+#+end_src
+
+#+header: :noweb-ref sh-clone
+#+header: :noweb yes
+#+begin_src sh
+  <<sh-declare-var-else-fallback>>
+#+end_src
+
+#+header: :noweb-ref sh-clone
+#+begin_src sh
+  array=('msg_fun' 'recurse_fun' 'unique_fun')
+#+end_src
+
+#+header: :noweb-ref sh-clone
+#+header: :noweb yes
+#+begin_src sh
+  <<sh-declare-fun-else-fallback>>
 #+end_src
 
 **** option
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   dryrun_flag='false'
   target_ext=''
   args=()
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   while (( $# > 0 )); do
       case "$1" in
-  	--dry-run=*)
-      	    dryrun_flag="${1#*=}"
-      	    shift
-      	    ;;
-        	--extension=*)
-        	    target_ext="${1#*=}"
-        	    shift
-        	    ;;
-        	--*) 
-      	    echo $(false; msg_fun "$?" "unknown option: $1")
-        	    exit 1
-        	    ;;
-  	,*) args+=("$1")
-  	   shift
-  	   ;;
+    	--dry-run=*)
+  	    dryrun_flag="${1#*=}"
+  	    [[ "$dryrun_flag" =~ ^(true|false)$ ]] || {
+  		msg_fun "$?" "invalid argument $dryrun_flag"
+  		exit 1
+  	    }
+  	    shift
+  	    ;;
+          --extension=*)
+              target_ext="${1#*=}"
+              shift
+              ;;
+          --*)
+  	    echo $(false; msg_fun "$?" "unknown option: $1")
+              exit 1
+              ;;
+    	,*) args+=("$1")
+    	   shift
+    	   ;;
       esac
   done
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
-  (( "${#args[@]}" == 1 )) || {
-      msg_fun "$?" "$(printf '%s positional arguments' "$count")"
+  count="${#args[@]}"
+  (( count == 1 )) || {
+      msg_fun "$?" $(printf '%s positional arguments' "$count")
       exit 1
   }
   source_file="${args[0]}"
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   if [[ -z "$target_ext" && "$source_file" == *.* ]]
   then
@@ -161,7 +243,7 @@ Execute:
   fi
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   [[ -f "${source_file}" ]] || {
       msg_fun "$?" "$source_file is not a file"
@@ -171,15 +253,7 @@ Execute:
 
 **** main
 
-#+header: :noweb-ref sh-main
-#+begin_src sh
-  for name in unique_dir unique_log trash_dir; do
-      fallback_var="fallback_${name}"
-      [[ -z "${!name-}" ]] && declare "$name"="${!fallback_var}"
-  done
-#+end_src
-
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   if [[ ! -d "$unique_dir" ]]; then
       msg='Create unique directory %s? [y/n] '
@@ -201,7 +275,7 @@ Execute:
   fi
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   if [[ ! -f "$unique_log" ]]; then
       msg='Create unique log %s? [y/n] '
@@ -223,109 +297,148 @@ Execute:
   fi
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   target_file="${unique_dir%/}/"
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   target_file+=$(unique_fun)
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   [[ -z "${target_ext}" ]] || {
       target_file+=".${target_ext}"
   }
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   # --- SIDE EFFECT --------------------------------------------------------------
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   msg_format=$(printf 'copy %s to %s' "$source_file" "$target_file")  
-  [[ "$dryrun_flag" == 'true' ]] || cp "$source_file" "$target_file"
-  status="$?"
-  msg_fun "$status" "$msg_format"
-  ((status==0)) || { exit 1; }
+  [[ "$dryrun_flag" == 'true' ]] \
+      || cp "$source_file" "$target_file" \
+      || {
+  	msg_fun "$?" "$msg_format"
+  	exit 1;
+      }
 #+end_src
 
-#+header: :noweb-ref sh-main
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   msg_format=$(printf 'move %s to %s' "$source_file" "$trash_dir")
   trash_path="${trash_dir%/}/$(basename "$source_file")"
-  [[ "$dryrun_flag" == 'true' ]] || mv "$source_file" "${trash_path}"
-  status="$?"
-  msg_fun "$status" "$msg_format"
-  ((status==0)) || { exit 1; }
+  [[ "$dryrun_flag" == 'true' ]] \
+      || mv "$source_file" "${trash_path}" \
+      || {
+  	msg_fun "$?" "$msg_format"
+  	exit 1
+      }
 #+end_src
 
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   echo "${target_file}"
 #+end_src
 
+#+header: :noweb-ref sh-clone
 #+begin_src sh
   exit 0
 #+end_src
-** test
+
+*** test
 :PROPERTIES:
-:header-args: :tangle ../sh/test_clone.sh
+:header-args: :tangle ../sh/er317_clone_test.sh
 :END:
+
+Execute:
+~M-x org-narrow-to-subtree~
+~M-x org-babel-tangle~
+~M-x widen~
 
 **** header
 
-#+header: :noweb-ref sh-header
+#+header: :noweb yes
 #+begin_src sh
   <<sh-shebang>>
 #+end_src
 
-#+header: :noweb-ref sh-header
 #+begin_src sh
   #===============================================================================
-  #  test_clone.sh — test for er317_clone.sh
+  # er317_clone_test.sh — test for er317_clone.sh
   #
   #  Author: Erwann Rogard
   #  License: GPL 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
   #
+  #  Requirement:
+  #    Copy `bach.sh` to $PWD
   #  Usage:
-  #    ./test_clone.sh
+  #    source ./er317_clone_test.sh
   #===============================================================================
+#+end_src
+
+**** function
+
+#+header: :noweb yes
+#+begin_src sh
+  <<sh-fallback-msg-fun>>
+#+end_src
+
+#+begin_src sh
+  array=('msg_fun')
+#+end_src
+
+#+header: :noweb yes
+#+begin_src sh
+  <<sh-declare-fun-else-fallback>>
 #+end_src
 
 **** main
 
 #+begin_src sh
-  @test "dry-run copy and move with env override for unique_dir and trash_dir" {
-  tmpdir=$(mktemp -d)
-  trap 'rm -rf "$tmpdir"' EXIT
+  file='bach.sh'
+  [[ -f "$file" ]] || {
+      msg_fun "$?" "$file not a file"
+      exit 1
+  }
+#+end_src
 
-  script="./your-script.sh"  # ← path to your actual script
-  src="$tmpdir/trash.me"
-  echo "test content" > "$src"
+#+begin_src sh
+  source "$file"
+#+end_src
 
-  # Override fallback paths
-  export unique_dir="$tmpdir/unique"
-  export unique_log="$tmpdir/unique.log"
-  export trash_dir="$tmpdir/trash"
+#+begin_src sh
+  script_dir=$(realpath $(@real dirname "${BASH_SOURCE[0]}"))
+#+end_src
 
-  mkdir -p "$unique_dir"
-  mkdir -p "$trash_dir"
+#+begin_src sh
+  test-clone() {
+      temp_dir="$(@real mktemp -d)"
+      trap "@real rm -rf '$temp_dir'" EXIT
 
-  result="$("$script" --dry-run=true --extension=txt "$src")"
-  status=$?
+      source_name='trash.me'
+      source_path="$temp_dir/$source_name"
+      @real touch "$source_path"
+      @real echo "content" > "$source_path"
 
-  (($status == 0)) || fail "Script exited with status $status"
+      export unique_dir="$temp_dir/unique"
+      export trash_dir="$temp_dir/trash"
 
-  echo "$result" | grep -q 'copy' || fail "Expected 'copy' message"
-  echo "$result" | grep -q 'move' || fail "Expected 'move' message"
+      @real mkdir -p "$unique_dir"
+      @real mkdir -p "$trash_dir"
 
-  [[ -f "$src" ]] || fail "Source file should still exist"
-  target_file="${result##*$'\n'}"
-  [[ ! -f "$target_file" ]] || fail "Dry-run should not create $target_file"
-}
+      # Use absolute path to er317_clone.sh relative to this test script
+      script_path="${script_dir}/er317_clone.sh"
+      target_path=$("$script_path" "$source_path")
 
+      [[ -f "$target_path" ]]; @assert-success
+      @assert-equals $(dirname "$target_path") "$unique_dir"
+      [[ -f "$source_path" ]]; @assert-fail      
+  }
 #+end_src
