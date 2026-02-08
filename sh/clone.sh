@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 #===============================================================================
-#  er317_clone.sh — clones a given file to a uniquely named file
+#  clone.sh — clones a given file to a uniquely named file
 #
 #  Author: Erwann Rogard
 #  License: GPL 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
 #
 #  Usage:
-#    ./er317_clone.sh [option] <file>
+#    ./clone.sh [option] <file>
 #  Option:
 #    --dry-run=true|false
 #    --extension=<extension>
@@ -104,7 +104,8 @@ while (( $# > 0 )); do
     esac
 done
 
-(( "${#args[@]}" == 1 )) || {
+count="${#args[@]}"
+(( count == 1 )) || {
     msg_fun "$?" $(printf '%s positional arguments' "$count")
     exit 1
 }

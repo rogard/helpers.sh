@@ -17,3 +17,4 @@ Clones a given file to a uniquely named file.
 
 Toggle DNS resolution through dnscrypt-proxy.
 
+![dnscrypt-enable](https://github.com/rogard/script.sh/blob/main/img.dnscrypt-enable.png)

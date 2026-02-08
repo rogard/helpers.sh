@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #===============================================================================
-#  er317_dnscrypt.sh — Toggle DNS resolution through dnscrypt-proxy
+#  dnscrypt.sh — Toggle DNS resolution through dnscrypt-proxy
 #
 #  Author: Erwann Rogard
 #  License: GPL 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
@@ -10,8 +10,8 @@
 #    Customize variables below
 #
 #  Usage:
-#    ./er317_dnscrypt.sh --enable
-#    ./er317_dnscrypt.sh --disable
+#    ./dnscrypt.sh --enable
+#    ./dnscrypt.sh --disable
 #===============================================================================
 
 set -euo pipefail
