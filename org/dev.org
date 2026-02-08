@@ -1,9 +1,9 @@
-#+title: readme.org
+#+title: dev.org
 #+author: Erwann Rogard
 
 #+name: doc-lead
 #+begin_src org
-  This is an Emacs Org meta-file.
+  This meta-file is used for generating module files.
 #+end_src
 
 * sh
@@ -87,13 +87,13 @@ Execute:
 #+header: :noweb-ref sh-clone
 #+begin_src sh
   #===============================================================================
-  #  er317_clone.sh — clones a given file to a uniquely named file
+  #  clone.sh — clones a given file to a uniquely named file
   #
   #  Author: Erwann Rogard
   #  License: GPL 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
   #
   #  Usage:
-  #    ./er317_clone.sh [option] <file>
+  #    ./clone.sh [option] <file>
   #  Option:
   #    --dry-run=true|false
   #    --extension=<extension>
@@ -371,7 +371,7 @@ Execute:
 
 #+begin_src sh
   #===============================================================================
-  # er317_clone_test.sh — test for er317_clone.sh
+  # clone_test.sh — test for clone.sh
   #
   #  Author: Erwann Rogard
   #  License: GPL 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
@@ -379,7 +379,7 @@ Execute:
   #  Requirement:
   #    Copy `bach.sh` to $PWD
   #  Usage:
-  #    source ./er317_clone_test.sh
+  #    source ./clone_test.sh
   #===============================================================================
 #+end_src
 
@@ -433,8 +433,8 @@ Execute:
       @real mkdir -p "$unique_dir"
       @real mkdir -p "$trash_dir"
 
-      # Use absolute path to er317_clone.sh relative to this test script
-      script_path="${script_dir}/er317_clone.sh"
+      # Use absolute path to clone.sh relative to this test script
+      script_path="${script_dir}/clone.sh"
       target_path=$("$script_path" "$source_path")
 
       [[ -f "$target_path" ]]; @assert-success
@@ -462,7 +462,7 @@ Execute:
 
 #+begin_src sh
   #===============================================================================
-  #  er317_dnscrypt.sh — Toggle DNS resolution through dnscrypt-proxy
+  #  dnscrypt.sh — Toggle DNS resolution through dnscrypt-proxy
   #
   #  Author: Erwann Rogard
   #  License: GPL 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
@@ -471,8 +471,8 @@ Execute:
   #    Customize variables below
   #
   #  Usage:
-  #    ./er317_dnscrypt.sh --enable
-  #    ./er317_dnscrypt.sh --disable
+  #    ./dnscrypt.sh --enable
+  #    ./dnscrypt.sh --disable
   #===============================================================================
 #+end_src
 

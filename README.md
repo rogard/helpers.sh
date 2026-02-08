@@ -1,15 +1,15 @@
-# script.sh
+# scripts.sh
 
 Unix shell scripts.
 
 ## Usage
 ```sh
-  chmod +x sh/<module>.sh
-  ./sh/<module>.sh [arguments]
+  chmod +x sh/$module.sh
+  ./sh/$module.sh ${arguments[@]}
 ```
 
 ## Module
-### [clone](https://github.com/rogard/script.sh/blob/main/sh/clone.sh)
+### [clone](https://github.com/rogard/scripts.sh/blob/main/sh/clone.sh)
 
 Clones a given file to a uniquely named file.
 
