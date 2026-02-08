@@ -68,7 +68,7 @@
 ** clone
 *** script
 :PROPERTIES:
-:header-args: :tangle ../sh/er317_clone.sh
+:header-args: :tangle ../sh/clone.sh
 :END:
 
 Execute:
@@ -354,7 +354,7 @@ Execute:
 
 *** test
 :PROPERTIES:
-:header-args: :tangle ../sh/er317_clone_test.sh
+:header-args: :tangle ../sh/clone_test.sh
 :END:
 
 Execute:
@@ -445,7 +445,7 @@ Execute:
 
 ** dnscrypt
 :PROPERTIES:
-:header-args: :tangle ../sh/er317_dnscrypt.sh
+:header-args: :tangle ../sh/dnscrypt.sh
 :END:
 
 Execute:
